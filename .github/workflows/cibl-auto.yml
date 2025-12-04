@@ -1,0 +1,28 @@
+name: CIBL Auto
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Create files
+      run: |
+        mkdir -p public
+        echo "CIBL Test Post" > public/post.txt
+        echo '{"test": true}' > public/data.json
+    
+    - name: Show result
+      run: |
+        echo "Files created:"
+        ls -la public/
