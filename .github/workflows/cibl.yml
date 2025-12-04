@@ -1,0 +1,101 @@
+name: CIBL Automation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # 1. Checkout
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.PAT_TOKEN }}
+    
+    # 2. Setup
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    # 3. Simple script without complex escaping
+    - name: Create script
+      run: |
+        mkdir -p scripts public
+        
+        # Create a simple JavaScript file
+        cat > scripts/simple.js << 'EOF'
+        const fs = require('fs');
+        
+        console.log('CIBL Automation Started');
+        
+        // Simple data
+        const data = {
+          price: 0.00012345,
+          change: 5.25,
+          symbol: 'CIB',
+          timestamp: new Date().toISOString()
+        };
+        
+        // Simple post
+        const post = [
+          '🚀 CIBL Token ($CIB)',
+          '💰 Price: $' + data.price.toFixed(8),
+          '📈 24h Change: +' + data.change.toFixed(2) + '%',
+          '',
+          'Contract: 2Lpgt5te...',
+          '🌐 https://cbl.ag',
+          '🔄 https://jup.ag',
+          '',
+          '#CIBL #Solana #Crypto'
+        ].join('\n');
+        
+        console.log('\nGenerated Post:\n');
+        console.log(post);
+        
+        // Save files
+        fs.writeFileSync('public/post.txt', post);
+        fs.writeFileSync('public/data.json', JSON.stringify(data, null, 2));
+        
+        console.log('\nFiles saved to public/');
+        EOF
+        
+        echo "Script created"
+    
+    # 4. Run script
+    - name: Run script
+      run: node scripts/simple.js
+    
+    # 5. Show result
+    - name: Show result
+      run: |
+        echo "=== POST ==="
+        cat public/post.txt
+        echo ""
+        echo "=== FILES ==="
+        ls -la public/
+    
+    # 6. Commit
+    - name: Commit
+      run: |
+        git config user.email "cibl@auto.com"
+        git config user.name "CIBL Auto"
+        git add public/
+        git commit -m "Update CIBL" || echo "No changes"
+    
+    # 7. Push
+    - name: Push
+      run: git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+    
+    # 8. Success
+    - name: Success
+      run: echo "✅ Done! Check public/post.txt"
