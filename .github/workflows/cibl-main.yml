@@ -1,0 +1,73 @@
+name: 🚀 CIBL Main Automation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
+
+permissions:
+  contents: write
+
+env:
+  CONTRACT: '2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA'
+  SYMBOL: 'CIB'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.PAT_TOKEN }}
+    
+    - name: ⚙️ Setup
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: 🚀 Generate CIBL post
+      run: |
+        mkdir -p public
+        
+        # اسکریپت ساده
+        cat > generate.js << 'EOF'
+        console.log('Generating CIBL post...');
+        
+        const data = {
+          price: 0.00012345,
+          change: 5.25,
+          timestamp: new Date().toISOString()
+        };
+        
+        const post = \`🚀 CIBL Token (\$CIB)
+💰 Price: $\${data.price.toFixed(8)}
+📈 24h Change: +\${data.change.toFixed(2)}%
+🌐 https://cbl.ag
+🔄 https://jup.ag
+
+#CIBL #Solana #Crypto\`;
+        
+        console.log(post);
+        
+        require('fs').writeFileSync('public/post.txt', post);
+        require('fs').writeFileSync('public/data.json', JSON.stringify(data, null, 2));
+        EOF
+        
+        node generate.js
+    
+    - name: 📤 Commit & Push
+      run: |
+        git config user.email "cibl-bot@users.noreply.github.com"
+        git config user.name "CIBL Bot"
+        git add public/
+        git commit -m "🤖 Auto: CIBL post $(date '+%H:%M')" || echo "No changes"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+    
+    - name: ✅ Done
+      run: |
+        echo "🎉 Automation complete!"
+        echo "Post: https://raw.githubusercontent.com/${{ github.repository }}/main/public/post.txt"
