@@ -1,0 +1,107 @@
+name: CIBL Promotion with Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      post_type:
+        description: 'Select post type'
+        required: true
+        default: 'airdrop'
+        type: choice
+        options:
+          - airdrop
+          - announcement
+          - community
+
+env:
+  CHANNEL: "@CIBLOfficial"
+  CONTRACT: "2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA"
+  # تصویر CIBL - می‌توانید این URL را با تصویر خودتان عوض کنید
+  CIBL_IMAGE: "https://raw.githubusercontent.com/ciblcoin/app/main/public/videos/logo.gif"
+  # یا از این تصاویر جایگزین استفاده کنید:
+  # IMAGE_URL: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0"  # تصویر کلی رمزنگاری
+  # IMAGE_URL: "https://images.unsplash.com/photo-1620336655055-bd87c5d1d73f"  # تصویر سولانا
+
+jobs:
+  send-with-image:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Send Airdrop Post with Image
+        if: github.event.inputs.post_type == 'airdrop'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "photo": "'"$CIBL_IMAGE"'",
+              "caption": "<b>🚀 CIBL MEGA AIRDROP IS LIVE! 🚀</b><br><br><i>The Biggest Airdrop Event on Solana Network!</i><br><br><b>📍 CONTRACT ADDRESS:</b><br><code>2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA</code><br><br><b>🎯 WHY CHOOSE CIBL?</b><br>✅ <b>Massive Airdrop Rewards</b> – Earn free tokens<br>✅ <b>Strong Community</b> – 5,000+ holders & growing<br>✅ <b>Solana Network</b> – Lightning fast, ultra low fees<br>✅ <b>Transparent Team</b> – Fully doxxed & committed<br>✅ <b>Innovative Tokenomics</b> – Sustainable growth model<br>✅ <b>Huge Potential</b> – Early stage gem with massive upside<br><br><b>🔥 LIMITED TIME OPPORTUNITY!</b><br>Early participants receive exclusive bonus rewards!<br><br><b>⏰ DON'\''T WAIT – JOIN THE REVOLUTION NOW!</b><br><br>#CIBL #Solana #Airdrop #Crypto #DeFi #Memecoin #Blockchain #Web3",
+              "parse_mode": "HTML",
+              "reply_markup": {
+                "inline_keyboard": [[
+                  {"text": "🌐 Official Website", "url": "https://ciblcoin.com"},
+                  {"text": "🎁 Join Airdrop Now", "url": "https://cbl.ag"}
+                ]]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendPhoto
+
+      - name: Send Community Post with Image
+        if: github.event.inputs.post_type == 'community'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "photo": "'"$CIBL_IMAGE"'",
+              "caption": "<b>👥 JOIN 5,000+ CIBL HOLDERS COMMUNITY! 👥</b><br><br><i>Strongest & Fastest Growing Community on Solana!</i><br><br><b>📍 CONTRACT ADDRESS:</b><br><code>2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA</code><br><br><b>🤝 COMMUNITY BENEFITS:</b><br>✅ <b>Active Discussions</b> – 24/7 Telegram group<br>✅ <b>Educational Content</b> – Learn from experts<br>✅ <b>Exclusive Events</b> – Regular AMAs & giveaways<br>✅ <b>Voting Rights</b> – Influence project decisions<br>✅ <b>Early Access</b> – First to know updates<br>✅ <b>Mutual Support</b> – Helpful community environment<br><br><b>🚀 GROWING TOGETHER:</b><br>📈 Rapid member expansion daily<br>📈 Increasing social media presence<br>📈 Strategic partnerships forming<br>📈 Global community building<br><br><b>🔗 CONNECT WITH US TODAY!</b><br><br>#CIBL #Solana #Community #Crypto #DeFi #Blockchain #Web3",
+              "parse_mode": "HTML",
+              "reply_markup": {
+                "inline_keyboard": [[
+                  {"text": "💬 Join Telegram Chat", "url": "https://t.me/ciblcoin"},
+                  {"text": "🌐 Official Website", "url": "https://ciblcoin.com"}
+                ]]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendPhoto
+
+      - name: Send Announcement with Image
+        if: github.event.inputs.post_type == 'announcement'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "photo": "'"$CIBL_IMAGE"'",
+              "caption": "<b>📢 IMPORTANT CIBL ANNOUNCEMENT 📢</b><br><br><i>Major Update for All CIBL Community Members!</i><br><br><b>📍 CONTRACT ADDRESS:</b><br><code>2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA</code><br><br><b>🎯 ANNOUNCEMENT DETAILS:</b><br>✅ <b>New Partnerships</b> – Strategic alliances secured<br>✅ <b>Roadmap Update</b> – Exciting developments ahead<br>✅ <b>Token Utility</b> – Enhanced features added<br>✅ <b>Growth Metrics</b> – Strong performance indicators<br>✅ <b>Future Plans</b> – Ambitious vision unfolding<br>✅ <b>Team Expansion</b> – Industry experts joining<br><br><b>🚀 WHAT THIS MEANS:</b><br>✨ Increased token value and utility<br>✨ Greater exposure and recognition<br>✨ More opportunities for rewards<br>✨ Enhanced platform features<br>✨ Stronger market position<br><br><b>⏰ STAY TUNED FOR MORE!</b><br><br>#CIBL #Solana #Announcement #Crypto #Update #DeFi #Web3",
+              "parse_mode": "HTML",
+              "reply_markup": {
+                "inline_keyboard": [[
+                  {"text": "🌐 Official Website", "url": "https://ciblcoin.com"},
+                  {"text": "📰 Read Full Details", "url": "https://cbl.ag"}
+                ]]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendPhoto
+
+      - name: Notify Admin
+        if: always()
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          if [ -n "${{ secrets.ADMIN_CHAT_ID }}" ]; then
+            curl -X POST \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"chat_id\": \"${{ secrets.ADMIN_CHAT_ID }}\",
+                \"text\": \"✅ CIBL post with image sent!\\n\\nType: ${{ github.event.inputs.post_type }}\\nChannel: @CIBLOfficial\\nImage: $CIBL_IMAGE\\nTime: $(date)\",
+                \"parse_mode\": \"HTML\"
+              }" \
+              https://api.telegram.org/bot$BOT_TOKEN/sendMessage || true
+          fi
