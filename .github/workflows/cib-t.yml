@@ -1,0 +1,120 @@
+name: CIBL Wide Promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      post_type:
+        description: 'Select post type'
+        required: true
+        default: 'airdrop'
+        type: choice
+        options:
+          - airdrop
+          - announcement
+          - community
+          - price_update
+
+env:
+  CHANNEL: "@CIBLOfficial"
+  CONTRACT: "2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA"
+
+jobs:
+  send-promo:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Send Airdrop Post
+        if: github.event.inputs.post_type == 'airdrop'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "text": "🚀 **CIBL MEGA AIRDROP IS LIVE!** 🚀\n\n🔥 *The Biggest Airdrop Event on Solana Network!*\n\n📍 **CONTRACT ADDRESS:**\n```\n2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA\n```\n\n🎯 **WHY CHOOSE CIBL TOKEN?**\n✅ **Massive Airdrop Rewards** – Earn free tokens\n✅ **Strong Community** – 5,000+ holders and growing\n✅ **Solana Network** – Lightning fast with ultra low fees\n✅ **Transparent Team** – Fully doxxed and committed\n✅ **Innovative Tokenomics** – Sustainable growth model\n✅ **Huge Potential** – Early stage gem with massive upside\n\n🔥 **LIMITED TIME OPPORTUNITY!**\nEarly participants receive exclusive bonus rewards!\n\n⏰ **DON'\''T WAIT – JOIN THE REVOLUTION NOW!**\n\n#CIBL #Solana #Airdrop #Crypto #DeFi #Memecoin #Blockchain #Web3",
+              "parse_mode": "Markdown",
+              "reply_markup": {
+                "inline_keyboard": [[
+                  {"text": "🌐 Official Website", "url": "https://ciblcoin.com"},
+                  {"text": "🎁 Join Airdrop", "url": "https://cbl.ag"}
+                ]]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendMessage
+
+      - name: Send Price Update Post
+        if: github.event.inputs.post_type == 'price_update'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "text": "📈 **CIBL PRICE UPDATE – TRENDING ON SOLANA!** 📈\n\n⚡ *Major Price Movement Detected – Don'\''t Miss Out!*\n\n📍 **CONTRACT ADDRESS:**\n```\n2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA\n```\n\n💰 **WHY CIBL IS MOVING?**\n📊 Strong fundamentals and growing adoption\n🚀 Increasing trading volume and liquidity\n👥 Rapid community expansion\n🎯 Strategic partnerships in development\n🔥 Positive market sentiment and momentum\n\n🎯 **KEY FEATURES:**\n✅ High-performance Solana token\n✅ Active development team\n✅ Regular updates and improvements\n✅ Community-driven decisions\n✅ Transparent roadmap\n\n💎 **INVESTMENT OPPORTUNITY:**\n• Early stage project with massive potential\n• Limited token supply available\n• Growing ecosystem integration\n• Upcoming exchange listings\n• Marketing campaigns underway\n\n⏰ **ACT NOW BEFORE NEXT PUMP!**\n\n#CIBL #Solana #Crypto #Trading #Investing #DeFi #Web3",
+              "parse_mode": "Markdown",
+              "reply_markup": {
+                "inline_keyboard": [[
+                  {"text": "📊 View Chart", "url": "https://dexscreener.com/solana/2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA"},
+                  {"text": "🌐 Website", "url": "https://ciblcoin.com"}
+                ]]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendMessage
+
+      - name: Send Community Post
+        if: github.event.inputs.post_type == 'community'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "text": "👥 **JOIN 5,000+ CIBL HOLDERS COMMUNITY!** 👥\n\n💪 *Strongest & Fastest Growing Community on Solana!*\n\n📍 **CONTRACT ADDRESS:**\n```\n2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA\n```\n\n🤝 **COMMUNITY BENEFITS:**\n✅ Active Telegram group with 24/7 discussions\n✅ Regular AMA sessions with the team\n✅ Exclusive community events and giveaways\n✅ Early access to announcements and updates\n✅ Voting rights on important decisions\n✅ Supportive environment for all members\n\n🌟 **WHY OUR COMMUNITY STANDS OUT:**\n✨ Genuine engagement and real conversations\n✨ Helpful members always ready to assist\n✨ Educational content for all experience levels\n✨ Positive and encouraging atmosphere\n✨ Strong sense of unity and common goals\n\n🚀 **COMMUNITY GROWTH:**\n📈 Rapidly expanding member base\n📈 Increasing social media presence\n📈 Growing influencer partnerships\n📈 Expanding global reach\n📈 Strengthening network effects\n\n🔗 **CONNECT WITH US TODAY!**\n\n#CIBL #Solana #Community #Crypto #DeFi #Blockchain #Web3",
+              "parse_mode": "Markdown",
+              "reply_markup": {
+                "inline_keyboard": [[
+                  {"text": "💬 Join Chat", "url": "https://t.me/ciblcoin"},
+                  {"text": "🌐 Website", "url": "https://ciblcoin.com"}
+                ]]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendMessage
+
+      - name: Send Announcement Post
+        if: github.event.inputs.post_type == 'announcement'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "text": "📢 **IMPORTANT CIBL ANNOUNCEMENT** 📢\n\n🌟 *Major Update for All CIBL Community Members!*\n\n📍 **CONTRACT ADDRESS:**\n```\n2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA\n```\n\n🎯 **ANNOUNCEMENT DETAILS:**\n✅ New strategic partnerships secured\n✅ Roadmap updates and future developments\n✅ Enhanced token utility and features\n✅ Expanded team with industry experts\n✅ Improved website and documentation\n✅ Upcoming marketing initiatives\n\n🚀 **WHAT THIS MEANS FOR YOU:**\n✨ Increased token value and utility\n✨ Greater exposure and recognition\n✨ More opportunities for rewards\n✨ Enhanced platform features\n✨ Stronger market position\n✨ Better user experience\n\n💎 **PROJECT HIGHLIGHTS:**\n• Built on Solana for maximum speed and efficiency\n• Transparent and committed development team\n• Strong community support and engagement\n• Regular updates and continuous improvement\n• Clear vision and achievable roadmap\n• Growing ecosystem integration\n\n⏰ **STAY TUNED FOR MORE UPDATES!**\n\n#CIBL #Solana #Announcement #Crypto #Update #DeFi #Web3",
+              "parse_mode": "Markdown",
+              "reply_markup": {
+                "inline_keyboard": [[
+                  {"text": "🌐 Official Website", "url": "https://ciblcoin.com"},
+                  {"text": "📰 Read More", "url": "https://cbl.ag"}
+                ]]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendMessage
+
+      - name: Notify Admin
+        if: always()
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          if [ -n "${{ secrets.ADMIN_CHAT_ID }}" ]; then
+            curl -X POST \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"chat_id\": \"${{ secrets.ADMIN_CHAT_ID }}\",
+                \"text\": \"✅ CIBL promotion sent!\\n\\nType: ${{ github.event.inputs.post_type }}\\nChannel: @CIBLOfficial\\nTime: $(date)\",
+                \"parse_mode\": \"Markdown\"
+              }" \
+              https://api.telegram.org/bot$BOT_TOKEN/sendMessage || true
+          fi
