@@ -1,0 +1,227 @@
+name: CIBL Professional Promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      post_type:
+        description: 'Select post type'
+        required: true
+        default: 'airdrop'
+        type: choice
+        options:
+          - airdrop
+          - announcement
+          - community
+          - price_update
+      include_stats:
+        description: 'Include live price stats'
+        required: true
+        default: 'true'
+        type: boolean
+
+env:
+  TELEGRAM_CHANNEL: "@CIBLOfficial"
+  CIBL_GIF: "https://raw.githubusercontent.com/ciblcoin/app/main/public/videos/logo.gif"
+  CONTRACT_ADDRESS: "2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA"
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Get Live Price Data
+        if: ${{ github.event.inputs.include_stats == 'true' }}
+        id: price_data
+        run: |
+          echo "📊 Fetching live market data..."
+          
+          # Get data from DexScreener
+          DATA=$(curl -s "https://api.dexscreener.com/latest/dex/tokens/$CONTRACT_ADDRESS")
+          
+          # Extract values with defaults
+          PRICE=$(echo $DATA | jq -r '.pairs[0].priceUsd // "0.000001"')
+          CHANGE=$(echo $DATA | jq -r '.pairs[0].priceChange.h24 // "0.00"')
+          LIQUIDITY=$(echo $DATA | jq -r '.pairs[0].liquidity.usd // "0"')
+          
+          # Format price
+          FORMATTED_PRICE="$PRICE"
+          if [ "$PRICE" != "0.000001" ]; then
+            FORMATTED_PRICE=$(printf "%.8f" $PRICE | sed 's/0*$//;s/\.$//')
+          fi
+          
+          # Format change with emoji
+          if (( $(echo "$CHANGE >= 0" | bc -l 2>/dev/null) )); then
+            FORMATTED_CHANGE="🟢 +$CHANGE%"
+          else
+            FORMATTED_CHANGE="🔴 $CHANGE%"
+          fi
+          
+          # Format liquidity
+          if [ "$LIQUIDITY" != "0" ]; then
+            FORMATTED_LIQUIDITY=$(printf "%'.0f" $LIQUIDITY)
+          else
+            FORMATTED_LIQUIDITY="0"
+          fi
+          
+          echo "price=\$$FORMATTED_PRICE" >> $GITHUB_OUTPUT
+          echo "change=$FORMATTED_CHANGE" >> $GITHUB_OUTPUT
+          echo "liquidity=\$$FORMATTED_LIQUIDITY" >> $GITHUB_OUTPUT
+          echo "chart_url=https://dexscreener.com/solana/$CONTRACT_ADDRESS" >> $GITHUB_OUTPUT
+          
+          echo "✅ Live data: \$$FORMATTED_PRICE | $FORMATTED_CHANGE"
+
+      - name: Create Promotion Content
+        id: create_content
+        run: |
+          # Select content based on post type
+          case "${{ github.event.inputs.post_type }}" in
+            "airdrop")
+              TITLE="🚀 **CIBL MEGA AIRDROP - LIVE NOW!** 🚀"
+              SUBTITLE="**The Biggest Airdrop Event on Solana Network!**"
+              FEATURES="🎁 **Massive Airdrop Rewards** - Earn free tokens
+👥 **Strong Community** - 5,000+ holders
+⚡ **Solana Speed** - Instant transactions
+🔒 **Transparent Team** - Fully doxxed
+📈 **Huge Potential** - Early stage gem"
+              ;;
+            "announcement")
+              TITLE="📢 **IMPORTANT CIBL ANNOUNCEMENT** 📢"
+              SUBTITLE="**Major Update for All CIBL Community Members!**"
+              FEATURES="🌟 **New Partnerships** - Strategic alliances
+🚀 **Roadmap Update** - Exciting developments
+💎 **Token Utility** - Enhanced features
+📊 **Growth Metrics** - Strong performance
+🎯 **Future Plans** - Ambitious vision"
+              ;;
+            "community")
+              TITLE="👥 **JOIN 5,000+ CIBL HOLDERS** 👥"
+              SUBTITLE="**Strongest & Fastest Growing Community on Solana!**"
+              FEATURES="🤝 **Active Community** - Daily engagement
+💬 **24/7 Support** - Helpful members
+📚 **Educational Content** - Learn and grow
+🎮 **Community Events** - Regular activities
+🏆 **Reward System** - Earn for participation"
+              ;;
+            "price_update")
+              TITLE="📈 **CIBL PRICE SURGE - TRENDING!** 📈"
+              SUBTITLE="**Major Price Movement Detected on Solana!**"
+              FEATURES="💰 **Growing Value** - Consistent appreciation
+📊 **Strong Metrics** - Healthy fundamentals
+🚀 **Momentum Building** - Positive trend
+🎯 **Smart Investment** - High potential
+💎 **Undervalued Gem** - Early opportunity"
+              ;;
+          esac
+          
+          # Add stats section if enabled
+          STATS_SECTION=""
+          if [ "${{ github.event.inputs.include_stats }}" = "true" ]; then
+            STATS_SECTION="**📊 LIVE MARKET DATA:**
+💰 **Price:** ${{ steps.price_data.outputs.price }}
+📈 **24H Change:** ${{ steps.price_data.outputs.change }}
+💧 **Liquidity:** ${{ steps.price_data.outputs.liquidity }}
+
+"
+          fi
+          
+          # Create the final message
+          MESSAGE="$TITLE
+
+$SUBTITLE
+
+**📍 CONTRACT ADDRESS:**
+\`$CONTRACT_ADDRESS\`
+
+$STATS_SECTION**🎯 WHY CHOOSE CIBL?**
+$FEATURES
+
+**🔥 LIMITED TIME OPPORTUNITY!**
+Early participants receive exclusive bonus rewards!
+
+**⏰ DON'T WAIT - JOIN THE REVOLUTION NOW!**
+
+#CIBL #Solana #Airdrop #Crypto #DeFi #Memecoin #Blockchain #Web3"
+          
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$MESSAGE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          echo "✅ Content created for ${{ github.event.inputs.post_type }} post"
+
+      - name: Send to Telegram Channel
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          echo "📤 Sending to @CIBLOfficial..."
+          
+          # Glass buttons design
+          BUTTONS='{
+            "inline_keyboard": [
+              [
+                {
+                  "text": "🌐 Official Website",
+                  "url": "https://ciblcoin.com"
+                },
+                {
+                  "text": "🎁 Join Airdrop",
+                  "url": "https://cbl.ag"
+                }
+              ]
+            ]
+          }'
+          
+          # First try with GIF
+          RESPONSE=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"$TELEGRAM_CHANNEL\",
+              \"animation\": \"$CIBL_GIF\",
+              \"caption\": \"${{ steps.create_content.outputs.content }}\",
+              \"parse_mode\": \"Markdown\",
+              \"reply_markup\": $BUTTONS
+            }" \
+            "https://api.telegram.org/bot$BOT_TOKEN/sendAnimation")
+          
+          if echo "$RESPONSE" | grep -q '"ok":true'; then
+            echo "✅ Post sent with GIF animation"
+            MSG_ID=$(echo "$RESPONSE" | grep -o '"message_id":[0-9]*' | head -1 | cut -d: -f2)
+          else
+            echo "⚠️ GIF failed, sending as text message..."
+            # Fallback to text message
+            RESPONSE=$(curl -s -X POST \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"chat_id\": \"$TELEGRAM_CHANNEL\",
+                \"text\": \"${{ steps.create_content.outputs.content }}\",
+                \"parse_mode\": \"Markdown\",
+                \"reply_markup\": $BUTTONS
+              }" \
+              "https://api.telegram.org/bot$BOT_TOKEN/sendMessage")
+            
+            if echo "$RESPONSE" | grep -q '"ok":true'; then
+              echo "✅ Post sent as text message"
+              MSG_ID=$(echo "$RESPONSE" | grep -o '"message_id":[0-9]*' | head -1 | cut -d: -f2)
+            else
+              echo "❌ Failed to send post"
+              echo "Error: $RESPONSE"
+              exit 1
+            fi
+          fi
+          
+          # Notify admin
+          if [ -n "${{ secrets.ADMIN_CHAT_ID }}" ]; then
+            curl -s -X POST \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"chat_id\": \"${{ secrets.ADMIN_CHAT_ID }}\",
+                \"text\": \"✅ **CIBL Promotion Published**\\n\\n📢 Channel: @CIBLOfficial\\n🎯 Type: ${{ github.event.inputs.post_type }}\\n📊 Stats: ${{ github.event.inputs.include_stats }}\\n🆔 Message ID: $MSG_ID\\n⏰ Time: $(date '+%H:%M:%S')\",
+                \"parse_mode\": \"Markdown\"
+              }" \
+              "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" > /dev/null 2>&1
+          fi
+
+      - name: Completion
+        run: |
+          echo "🎉 Promotion published successfully!"
+          echo "🔗 View at: https://t.me/CIBLOfficial"
+          echo "⏰ Completed: $(date)"
