@@ -1,0 +1,229 @@
+name: CIBL Telegram Promoter
+
+on:
+  workflow_dispatch:
+    inputs:
+      message_type:
+        description: 'نوع پیام تبلیغاتی'
+        required: true
+        default: 'airdrop'
+        type: choice
+        options:
+          - airdrop
+          - announcement
+          - community
+          - urgent
+      include_stats:
+        description: 'نمایش آمار لحظه‌ای قیمت؟'
+        required: true
+        default: 'true'
+        type: boolean
+      custom_text:
+        description: 'متن اضافی دلخواه (اختیاری)'
+        required: false
+        default: ''
+
+env:
+  TELEGRAM_CHANNEL: "@CIBLOfficial"
+  CIBL_GIF: "https://raw.githubusercontent.com/ciblcoin/app/main/public/videos/logo.gif"
+  CONTRACT: "2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA"
+
+jobs:
+  promote-cibl:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🏁 شروع عملیات
+        run: |
+          echo "=== CIBL TELEGRAM PROMOTION ==="
+          echo "📅 زمان: $(date)"
+          echo "📢 کانال: ${{ env.TELEGRAM_CHANNEL }}"
+          echo "🎯 نوع: ${{ github.event.inputs.message_type }}"
+          echo "📊 آمار: ${{ github.event.inputs.include_stats }}"
+
+      - name: 📊 دریافت آمار لحظه‌ای
+        if: ${{ github.event.inputs.include_stats == 'true' }}
+        id: stats
+        run: |
+          echo "دریافت اطلاعات از DexScreener..."
+          
+          # استفاده از API ساده
+          response=$(curl -s "https://api.dexscreener.com/latest/dex/tokens/${{ env.CONTRACT }}")
+          
+          # استخراج داده‌ها
+          price=$(echo $response | jq -r '.pairs[0].priceUsd // "0"')
+          change=$(echo $response | jq -r '.pairs[0].priceChange.h24 // "0"')
+          
+          if [ "$price" != "0" ]; then
+            # فرمت قیمت
+            formatted_price=$(echo "scale=8; $price" | bc | sed 's/0*$//' | sed 's/\.$//')
+            if [[ ! $formatted_price == *"."* ]]; then
+              formatted_price="$formatted_price.0"
+            fi
+            
+            # اطمینان از وجود علامت دلار
+            if [[ ! $formatted_price == "$"* ]]; then
+              formatted_price="\$$formatted_price"
+            fi
+            
+            # فرمت تغییرات
+            if (( $(echo "$change >= 0" | bc -l) )); then
+              formatted_change="🟢 +$change%"
+            else
+              formatted_change="🔴 $change%"
+            fi
+          else
+            formatted_price="\$$(echo 'scale=6; 0.000001' | bc)"
+            formatted_change="🟢 +0.00%"
+          fi
+          
+          echo "price=$formatted_price" >> $GITHUB_OUTPUT
+          echo "change=$formatted_change" >> $GITHUB_OUTPUT
+          echo "chart_url=https://dexscreener.com/solana/${{ env.CONTRACT }}" >> $GITHUB_OUTPUT
+          
+          echo "✅ آمار دریافت شد:"
+          echo "💰 $formatted_price"
+          echo "📈 $formatted_change"
+
+      - name: ✍️ تولید متن پست
+        id: content
+        run: |
+          # انتخاب عنوان
+          case "${{ github.event.inputs.message_type }}" in
+            "airdrop")
+              TITLE="🚀 CIBL MEGA AIRDROP - LIVE NOW!"
+              SUBTITLE="Join the biggest airdrop event on Solana!"
+              ;;
+            "urgent")
+              TITLE="🔥 URGENT: CIBL PRICE SURGE IMMINENT!"
+              SUBTITLE="Major movement detected - Act fast!"
+              ;;
+            "community")
+              TITLE="👥 JOIN 5K+ CIBL HOLDERS COMMUNITY"
+              SUBTITLE="Strongest community on Solana!"
+              ;;
+            *)
+              TITLE="🌟 CIBL ($CIB) - SOLANA GEM"
+              SUBTITLE="Next big token on Solana ecosystem!"
+              ;;
+          esac
+          
+          # بخش آمار
+          STATS=""
+          if [ "${{ github.event.inputs.include_stats }}" = "true" ]; then
+            STATS="<b>📈 LIVE PRICE:</b> ${{ steps.stats.outputs.price }}
+<b>📊 24H CHANGE:</b> ${{ steps.stats.outputs.change }}
+
+"
+          fi
+          
+          # متن سفارشی
+          CUSTOM=""
+          if [ -n "${{ github.event.inputs.custom_text }}" ]; then
+            CUSTOM="\n\n<b>📢 SPECIAL MESSAGE:</b>\n${{ github.event.inputs.custom_text }}\n"
+          fi
+          
+          # ساخت متن نهایی
+          POST="<b>$TITLE</b>
+
+$SUBTITLE
+
+<b>📍 CONTRACT ADDRESS:</b>
+<code>${{ env.CONTRACT }}</code>
+
+$STATS<b>✅ WHY CIBL?</b>
+🎁 <b>Massive Airdrop</b> - Earn free tokens
+👥 <b>Strong Community</b> - 5,000+ holders
+⚡ <b>Solana Speed</b> - Instant transactions
+🔒 <b>Transparent Team</b> - Fully doxxed
+📈 <b>Huge Potential</b> - Early stage gem
+
+<b>🔥 LIMITED TIME OPPORTUNITY!</b>
+Early participants get bonus rewards!$CUSTOM
+
+<b>⏰ DON'T MISS OUT - JOIN NOW!</b>
+
+#CIBL #Solana #Airdrop #Crypto #DeFi #Memecoin #Web3"
+          
+          echo "post_content<<EOF" >> $GITHUB_OUTPUT
+          echo "$POST" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          echo "✅ متن پست آماده شد"
+
+      - name: 📤 ارسال به تلگرام
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          echo "ارسال پست به کانال تلگرام..."
+          
+          # ساخت دکمه‌های شیشه‌ای زیبا
+          BUTTONS='{
+            "inline_keyboard": [
+              [
+                {"text": "🌐 Official Website", "url": "https://ciblcoin.com"},
+                {"text": "🎁 Join Airdrop", "url": "https://cbl.ag"}
+              ],
+              [
+                {"text": "📊 View Live Chart", "url": "${{ steps.stats.outputs.chart_url }}"},
+                {"text": "🐦 Follow on Twitter", "url": "https://twitter.com/ciblcoin"}
+              ]
+            ]
+          }'
+          
+          # ارسال پست
+          RESPONSE=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"${{ env.TELEGRAM_CHANNEL }}\",
+              \"animation\": \"${{ env.CIBL_GIF }}\",
+              \"caption\": \"${{ steps.content.outputs.post_content }}\",
+              \"parse_mode\": \"HTML\",
+              \"reply_markup\": $BUTTONS
+            }" \
+            "https://api.telegram.org/bot$BOT_TOKEN/sendAnimation")
+          
+          # بررسی نتیجه
+          if echo "$RESPONSE" | grep -q '"ok":true'; then
+            MSG_ID=$(echo "$RESPONSE" | grep -o '"message_id":[0-9]*' | head -1 | cut -d: -f2)
+            echo "🎉 پست با موفقیت ارسال شد!"
+            echo "📱 Message ID: $MSG_ID"
+            echo "🔗 View at: https://t.me/CIBLOfficial"
+            
+            # ارسال تأییدیه به ادمین
+            curl -s -X POST \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"chat_id\": \"${{ secrets.ADMIN_CHAT_ID }}\",
+                \"text\": \"✅ <b>CIBL Post Published!</b>\n\n📢 Channel: @CIBLOfficial\n🎯 Type: ${{ github.event.inputs.message_type }}\n🆔 Message ID: $MSG_ID\n⏰ Time: $(date '+%H:%M:%S')\n\n✅ Post sent successfully!\",
+                \"parse_mode\": \"HTML\",
+                \"disable_web_page_preview\": true
+              }" \
+              "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" || true
+              
+          else
+            echo "❌ خطا در ارسال پست!"
+            echo "Error response: $RESPONSE"
+            
+            # ارسال خطا به ادمین
+            ERROR_MSG=$(echo "$RESPONSE" | grep -o '"description":"[^"]*"' | cut -d'"' -f4 || echo "Unknown error")
+            
+            curl -s -X POST \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"chat_id\": \"${{ secrets.ADMIN_CHAT_ID }}\",
+                \"text\": \"❌ <b>FAILED to send CIBL post!</b>\n\n🚨 Error: $ERROR_MSG\n📢 Channel: @CIBLOfficial\n⏰ Time: $(date)\",
+                \"parse_mode\": \"HTML\"
+              }" \
+              "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" || true
+              
+            exit 1
+          fi
+
+      - name: ✅ تکمیل
+        run: |
+          echo "================================="
+          echo "✅ WORKFLOW COMPLETED SUCCESSFULLY"
+          echo "📢 Post published to @CIBLOfficial"
+          echo "⏰ Finished at: $(date)"
+          echo "================================="
