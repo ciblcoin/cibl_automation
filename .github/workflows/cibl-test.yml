@@ -1,0 +1,28 @@
+name: CIBL Telegram Test
+on: workflow_dispatch
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Test Promotion
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          # Send a simple test promotion
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "text": "🚀 **CIBL MEGA AIRDROP - LIVE NOW!** 🚀\n\n🔥 **The Biggest Airdrop on Solana!**\n\n📍 **Contract:** `2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA`\n\n✅ **Massive Airdrop Rewards**\n✅ **Strong Community**\n✅ **Solana Speed**\n✅ **Transparent Team**\n\n🔥 **Limited Time Opportunity!**\n\n⏰ **Join Now!**\n\n#CIBL #Solana #Airdrop",
+              "parse_mode": "Markdown",
+              "reply_markup": {
+                "inline_keyboard": [[
+                  {"text": "🌐 Website", "url": "https://ciblcoin.com"},
+                  {"text": "🎁 Airdrop", "url": "https://cbl.ag"}
+                ]]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendMessage
+          
+          echo "✅ Test post sent to @CIBLOfficial"
