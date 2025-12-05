@@ -1,0 +1,99 @@
+name: CIBL Advanced Promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      post_style:
+        description: 'Select post style'
+        required: true
+        default: 'standard'
+        type: choice
+        options:
+          - standard
+          - premium
+          - urgent
+
+env:
+  CHANNEL: "@CIBLOfficial"
+  CONTRACT: "2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA"
+
+jobs:
+  send-promotion:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Send Standard Promotion
+        if: github.event.inputs.post_style == 'standard'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "text": "🚀 **CIBL MEGA AIRDROP - LIVE NOW!** 🚀\n\n🔥 **The Biggest Airdrop Event on Solana Network!**\n\n📍 **Contract Address:**\n\`2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA\`\n\n🎯 **WHY CIBL TOKEN?**\n✅ **Massive Airdrop Rewards** - Earn free tokens\n✅ **Strong Community** - 5,000+ holders & growing\n✅ **Solana Network** - Lightning fast, ultra low fees\n✅ **Transparent Team** - Fully doxxed & committed\n✅ **Innovative Tokenomics** - Sustainable growth model\n✅ **Huge Potential** - Early stage gem with massive upside\n\n🔥 **LIMITED TIME OPPORTUNITY!**\nEarly participants receive exclusive bonus rewards!\n\n⏰ **DON'\''T WAIT - JOIN THE REVOLUTION NOW!**\n\n#CIBL #Solana #Airdrop #Crypto #DeFi #Memecoin #Blockchain #Web3",
+              "parse_mode": "Markdown",
+              "reply_markup": {
+                "inline_keyboard": [[
+                  {"text": "🌐 Official Website", "url": "https://ciblcoin.com"},
+                  {"text": "🎁 Join Airdrop", "url": "https://cbl.ag"}
+                ]]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendMessage
+
+      - name: Send Premium Promotion
+        if: github.event.inputs.post_style == 'premium'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "text": "🌟 **CIBL PREMIUM ANNOUNCEMENT** 🌟\n\n⚡ **EXCLUSIVE OPPORTUNITY ON SOLANA!**\n\n📊 **TOKEN INFORMATION:**\n• **Contract:** \`2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA\`\n• **Network:** Solana (Fastest Blockchain)\n• **Community:** 5,000+ Strong Holders\n• **Status:** Trending & Growing\n\n🏆 **KEY FEATURES:**\n✨ **Massive Airdrop Program** - Generous rewards\n✨ **Active Development** - Regular updates\n✨ **Strong Fundamentals** - Solid tokenomics\n✨ **Community Driven** - Holder focused\n✨ **Market Ready** - High liquidity pools\n\n🚀 **GROWTH POTENTIAL:**\n📈 Early adoption phase\n📈 Strategic partnerships\n📈 Exchange listings incoming\n📈 Marketing campaigns active\n\n💎 **WHY INVEST NOW?**\n• Early mover advantage\n• Limited supply token\n• Growing ecosystem\n• Proven team track record\n\n🔥 **ACT NOW - LIMITED SPOTS AVAILABLE!**\n\n#CIBL #Solana #Crypto #Investment #DeFi #Web3 #Blockchain #Trading",
+              "parse_mode": "Markdown",
+              "reply_markup": {
+                "inline_keyboard": [[
+                  {"text": "🌐 Visit Website", "url": "https://ciblcoin.com"},
+                  {"text": "🎁 Claim Airdrop", "url": "https://cbl.ag"}
+                ]]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendMessage
+
+      - name: Send Urgent Promotion
+        if: github.event.inputs.post_style == 'urgent'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "text": "🔥 **URGENT: CIBL PRICE ACTION ALERT!** 🔥\n\n⚠️ **MAJOR MOVEMENT DETECTED!**\n\n🚨 **TIME-SENSITIVE OPPORTUNITY**\nThe CIBL token is showing strong bullish signals on Solana!\n\n📊 **CRITICAL INFORMATION:**\n• **Contract:** \`2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA\`\n• **Network:** Solana\n• **Status:** TRENDING NOW\n• **Action Required:** IMMEDIATE\n\n🎯 **WHY ACT NOW?**\n⚡ **Limited Supply** - Getting scarcer\n⚡ **Growing Demand** - More buyers entering\n⚡ **Market Momentum** - Positive trend established\n⚡ **Upcoming Catalysts** - Major announcements pending\n⚡ **Community Growth** - Rapid holder increase\n\n🚀 **EXPECTED OUTCOMES:**\n✅ Price appreciation potential\n✅ Increased visibility\n✅ Exchange listings\n✅ Partnership announcements\n\n⏰ **TIME IS CRITICAL!**\nThis window of opportunity won'\''t last long!\n\n💎 **DON'\''T MISS OUT - SECURE YOUR POSITION NOW!**\n\n#CIBL #Solana #Alert #Urgent #Crypto #Trading #Opportunity",
+              "parse_mode": "Markdown",
+              "reply_markup": {
+                "inline_keyboard": [[
+                  {"text": "🚀 Buy Now", "url": "https://dexscreener.com/solana/2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA"},
+                  {"text": "🌐 Website", "url": "https://ciblcoin.com"}
+                ]]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendMessage
+
+      - name: Send Admin Notification
+        if: always()
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          if [ -n "${{ secrets.ADMIN_CHAT_ID }}" ]; then
+            curl -X POST \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"chat_id\": \"${{ secrets.ADMIN_CHAT_ID }}\",
+                \"text\": \"✅ CIBL promotion sent successfully!\\n\\nStyle: ${{ github.event.inputs.post_style }}\\nChannel: @CIBLOfficial\\nTime: $(date '+%Y-%m-%d %H:%M:%S')\",
+                \"parse_mode\": \"Markdown\"
+              }" \
+              https://api.telegram.org/bot$BOT_TOKEN/sendMessage || true
+          fi
