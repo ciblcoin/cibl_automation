@@ -1,0 +1,236 @@
+name: CIBL Telegram Post
+on: workflow_dispatch
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Create and run script
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+        run: |
+          # Install dependencies
+          pip3 install requests
+          
+          # Create script file
+          cat > cibl_post.py << 'EOF'
+          import os
+          import sys
+          import random
+          import requests
+          from datetime import datetime
+          
+          # Config
+          TOKEN = os.getenv('BOT_TOKEN')
+          CHAT = os.getenv('CHAT_ID')
+          IMAGE = "https://raw.githubusercontent.com/ciblcoin/app/main/public/videos/image1.png"
+          
+          # All 10 posts
+          posts_data = [
+              {
+                  "title": "🚀 CIBL MEGA AIRDROP - LIVE NOW!",
+                  "content": """🔥 Biggest Solana Airdrop Event
+          
+          Contract: 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          ✅ Free tokens
+          ✅ 5,000+ holders
+          ✅ Fast & low fees
+          ✅ Transparent team
+          ✅ Huge potential
+          
+          ⏰ Limited time bonus!""",
+                  "hashtags": "#CIBL #Solana #Airdrop #Crypto"
+              },
+              {
+                  "title": "📈 CIBL PRICE UPDATE",
+                  "content": """⚡ Major movement detected
+          
+          Contract: 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          📊 Strong fundamentals
+          🚀 Growing adoption
+          👥 Community expanding
+          🎯 New partnerships
+          🔥 Positive momentum""",
+                  "hashtags": "#CIBL #Solana #Crypto #Trading"
+              },
+              {
+                  "title": "👥 CIBL COMMUNITY",
+                  "content": """💪 Strongest on Solana
+          
+          Contract: 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          ✅ 24/7 discussions
+          ✅ AMA sessions
+          ✅ Exclusive events
+          ✅ Voting rights
+          ✅ Supportive team""",
+                  "hashtags": "#CIBL #Community #Solana #Blockchain"
+              },
+              {
+                  "title": "📢 CIBL ANNOUNCEMENT",
+                  "content": """🌟 Major updates
+          
+          Contract: 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          ✅ New partnerships
+          ✅ Roadmap updates
+          ✅ Enhanced features
+          ✅ Expanded team
+          ✅ Marketing boost""",
+                  "hashtags": "#CIBL #Announcement #Update #DeFi"
+              },
+              {
+                  "title": "✨ FROM STRUGGLE TO SUCCESS",
+                  "content": """Our journey continues
+          
+          🏙️ City full of friends
+          😻 Cats always first!
+          
+          💎 Love TON blockchain
+          🎯 Engage & get rewards""",
+                  "hashtags": "#CIBL #Success #Crypto #TON"
+              },
+              {
+                  "title": "🚀 CIBL IS TRENDING",
+                  "content": """Massive movements!
+          
+          Join the revolution
+          Be part of change
+          
+          Early adopters win
+          Don't miss out!""",
+                  "hashtags": "#CIBL #Trending #Solana #Crypto"
+              },
+              {
+                  "title": "⚡ URGENT OFFER",
+                  "content": """Airdrop closing soon!
+          
+          Contract: 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          ✅ Exclusive bonus
+          ✅ Limited distribution
+          ✅ Community benefits
+          ✅ Massive returns
+          
+          ⏰ Last chance!""",
+                  "hashtags": "#CIBL #Urgent #Airdrop #Limited"
+              },
+              {
+                  "title": "🌍 CIBL ECOSYSTEM",
+                  "content": """Growing fast
+          
+          Contract: 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          ✅ Swap functionality
+          ✅ Wallet integrations
+          ✅ Token utilities
+          ✅ New partnerships
+          ✅ Marketing push""",
+                  "hashtags": "#CIBL #Ecosystem #Growth #Web3"
+              },
+              {
+                  "title": "🌐 CONNECT WITH CIBL",
+                  "content": """Join social network
+          
+          Contract: 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          🐦 Twitter/X updates
+          💬 Telegram chats
+          📸 Instagram visuals
+          🎮 Discord community
+          📺 YouTube tutorials""",
+                  "hashtags": "#CIBL #Social #Network #Community"
+              },
+              {
+                  "title": "⏰ FINAL 24 HOURS",
+                  "content": """Last opportunity!
+          
+          Contract: 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          ✅ Free CIBL tokens
+          ✅ Bonus rewards
+          ✅ Early benefits
+          ✅ Membership perks
+          ✅ Voting rights""",
+                  "hashtags": "#CIBL #Final #Airdrop #LastChance"
+              }
+          ]
+          
+          # Select random post
+          post = random.choice(posts_data)
+          
+          # Social icons
+          icons = ["🎮", "𝕏", "📱", "💻", "🐦", "🎪", "👾", "🕹️"]
+          selected = random.sample(icons, 4)
+          
+          # Create caption with full width separators
+          separator = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          caption = f"""<b>{post['title']}</b>
+
+  {post['content']}
+
+  {separator}
+  <b>🚀 QUICK ACTIONS</b>
+  {separator}
+
+  <b>{'   |   '.join(selected)}</b>
+
+  <b>{post['hashtags']}</b>
+
+  <i>Posted: {datetime.now().strftime("%Y-%m-%d %H:%M UTC")}</i>"""
+          
+          # Create 3 full-width buttons
+          buttons = {
+              "inline_keyboard": [
+                  [{"text": "🌐 WEBSITE - ciblcoin.com", "url": "https://ciblcoin.com"}],
+                  [{"text": "🪂 AIRDROP - cbl.ag", "url": "https://cbl.ag"}],
+                  [{"text": "🔄 SWAP TOKEN - Phantom", "url": "https://phantom.com/tokens/solana/2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA?referralId=2325rur2wft"}]
+              ]
+          }
+          
+          # Send to Telegram
+          url = f"https://api.telegram.org/bot{TOKEN}/sendPhoto"
+          payload = {
+              "chat_id": CHAT,
+              "photo": IMAGE,
+              "caption": caption,
+              "parse_mode": "HTML",
+              "reply_markup": buttons
+          }
+          
+          try:
+              response = requests.post(url, json=payload, timeout=30)
+              result = response.json()
+              
+              if result.get('ok'):
+                  print("✅ Success! Post published to @CiBLofficial")
+                  print(f"📱 Message ID: {result['result']['message_id']}")
+                  print(f"🎯 Post type: {post['title'].split()[0]}")
+                  print(f"📅 Time: {datetime.now().strftime('%H:%M')}")
+                  sys.exit(0)
+              else:
+                  print(f"❌ Telegram error: {result.get('description')}")
+                  sys.exit(1)
+                  
+          except Exception as e:
+              print(f"❌ Network error: {str(e)}")
+              sys.exit(1)
+          EOF
+          
+          # Run the script
+          python3 cibl_post.py
+          
+      - name: Completion
+        run: |
+          echo " "
+          echo "🎉 Process completed!"
+          echo "📢 Check @CiBLofficial channel"
+          echo "🤖 Bot: @CIBtokenBot"
+          echo " "
