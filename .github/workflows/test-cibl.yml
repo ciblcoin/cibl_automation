@@ -1,0 +1,19 @@
+name: CIBL Simple Test
+on: workflow_dispatch
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Test Post
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "-1002923296515",
+              "text": "🤖 Test from GitHub Actions\n\n✅ Bot is working!\n🕒 Time: $(date)",
+              "parse_mode": "HTML"
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendMessage
