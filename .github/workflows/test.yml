@@ -1,0 +1,52 @@
+name: CIBL Ultimate Poster
+
+on:
+  workflow_dispatch
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Professional Post
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          # طراحی حرفه‌ای با کمترین توجه به آیکون
+          CAPTION='<b>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</b>
+<b>　　　　　　　🚀　CIBL　TOKEN　🚀</b>
+<b>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</b>
+
+<b>　　　　SOLANA NETWORK • FAST & SECURE</b>
+
+<code>2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA</code>
+
+<b>▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰</b>
+
+<b>✅ MASSIVE AIRDROP REWARDS</b>
+<b>✅ STRONG GROWING COMMUNITY</b>
+<b>✅ TRANSPARENT DOXXED TEAM</b>
+<b>✅ HUGE GROWTH POTENTIAL</b>
+
+<b>▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰</b>
+
+<b>⏰ LIMITED TIME OPPORTUNITY ⏰</b>
+
+<b>#CIBL #Solana #Airdrop #Crypto</b>'
+          
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"-1002923296515\",
+              \"photo\": \"https://raw.githubusercontent.com/ciblcoin/app/main/public/videos/image1.png\",
+              \"caption\": \"$CAPTION\",
+              \"parse_mode\": \"HTML\",
+              \"reply_markup\": {
+                \"inline_keyboard\": [[
+                  {\"text\": \"▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰\", \"url\": \"https://ciblcoin.com\"},
+                  {\"text\": \"▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰\", \"url\": \"https://cbl.ag\"}
+                ]]
+              }
+            }" \
+            https://api.telegram.org/bot$BOT_TOKEN/sendPhoto
+          
+          echo "🎉 Professional post sent!"
