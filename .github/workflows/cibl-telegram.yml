@@ -1,0 +1,391 @@
+name: CIBL Telegram Poster
+on:
+  workflow_dispatch:
+    inputs:
+      post_number:
+        description: 'Post number (1-10) or 0 for random'
+        required: true
+        default: '0'
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Create poster script
+        run: |
+          cat > poster.py << 'EOF'
+          import os
+          import sys
+          import random
+          import requests
+          import json
+          from datetime import datetime
+          
+          # Configuration
+          BOT_TOKEN = os.getenv('BOT_TOKEN')
+          CHAT_ID = os.getenv('CHAT_ID')
+          
+          # Image URL
+          IMAGE_URL = "https://raw.githubusercontent.com/ciblcoin/app/main/public/videos/image1.png"
+          
+          # Posts Database - 10 English posts
+          posts = [
+              '''🚀 CIBL MEGA AIRDROP - LIVE NOW! 🚀
+          
+          🔥 The Biggest Airdrop Event on Solana Network!
+          
+          📍 Contract Address:
+          2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          🎯 WHY CIBL TOKEN?
+          ✅ Massive Airdrop Rewards - Earn free tokens
+          ✅ Strong Community - 5,000+ holders & growing
+          ✅ Solana Network - Lightning fast, ultra low fees
+          ✅ Transparent Team - Fully doxxed & committed
+          ✅ Innovative Tokenomics - Sustainable growth model
+          ✅ Huge Potential - Early stage gem with massive upside
+          
+          🔥 LIMITED TIME OPPORTUNITY!
+          Early participants receive exclusive bonus rewards!
+          
+          ⏰ DON'T WAIT - JOIN THE REVOLUTION NOW!''',
+              
+              '''📈 CIBL PRICE UPDATE – TRENDING ON SOLANA! 📈
+          
+          ⚡ Major Price Movement Detected – Don't Miss Out!
+          
+          📍 Contract Address:
+          2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          🚀 WHY CIBL IS MOVING?
+          📊 Strong fundamentals and growing adoption
+          🚀 Increasing trading volume and liquidity
+          👥 Rapid community expansion
+          🎯 Strategic partnerships in development
+          🔥 Positive market sentiment and momentum
+          
+          💎 INVESTMENT OPPORTUNITY:
+          • Early stage project with massive potential
+          • Limited token supply available
+          • Growing ecosystem integration
+          • Upcoming exchange listings
+          • Marketing campaigns underway''',
+              
+              '''👥 JOIN 5,000+ CIBL HOLDERS COMMUNITY! 👥
+          
+          💪 Strongest & Fastest Growing Community on Solana!
+          
+          📍 CONTRACT ADDRESS:
+          2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          🤝 COMMUNITY BENEFITS:
+          ✅ Active discussions 24/7
+          ✅ Regular AMA sessions with team
+          ✅ Exclusive community events
+          ✅ Early access to announcements
+          ✅ Voting rights on decisions
+          ✅ Supportive environment
+          
+          🌟 WHY OUR COMMUNITY STANDS OUT:
+          ✨ Genuine engagement and real conversations
+          ✨ Helpful members always ready to assist
+          ✨ Educational content for all levels
+          ✨ Positive and encouraging atmosphere
+          ✨ Strong sense of unity and common goals
+          
+          🚀 JOIN THE MOVEMENT TODAY!''',
+              
+              '''📢 IMPORTANT CIBL ANNOUNCEMENT 📢
+          
+          🌟 Major Update for All CIBL Community Members!
+          
+          📍 CONTRACT ADDRESS:
+          2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          🎯 ANNOUNCEMENT DETAILS:
+          ✅ New strategic partnerships secured
+          ✅ Roadmap updates and future developments
+          ✅ Enhanced token utility and features
+          ✅ Expanded team with industry experts
+          ✅ Improved website and documentation
+          ✅ Upcoming marketing initiatives
+          
+          🚀 WHAT THIS MEANS FOR YOU:
+          ✨ Increased token value and utility
+          ✨ Greater exposure and recognition
+          ✨ More opportunities for rewards
+          ✨ Enhanced platform features
+          ✨ Stronger market position
+          ✨ Better user experience
+          
+          ⏰ STAY TUNED FOR MORE UPDATES!''',
+              
+              '''✨ FROM STRUGGLE TO SUCCESS ✨
+          
+          Our friends made an incredible journey - now it's your turn!
+          
+          🏙️ Their city is full of animal friends, but cats are always first in line!
+          
+          💎 Time to fall in love with TON. Stay tuned, engage, and get rewarded!
+          
+          🎯 Quick Action Buttons Below ⬇️''',
+              
+              '''🚀 CIBL IS TRENDING! 🚀
+          
+          Massive movements detected
+          Join the revolution now!
+          
+          ⚡ Quick Actions Below ⬇️''',
+              
+              '''⚡ URGENT: LIMITED TIME OFFER! ⚡
+          
+          CIBL Airdrop closing soon!
+          Last chance to claim bonus rewards!
+          
+          📍 Contract Address:
+          2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          🎯 DON'T MISS OUT:
+          ✅ Exclusive bonus for early participants
+          ✅ Limited token distribution
+          ✅ Growing community benefits
+          ✅ Potential for massive returns
+          
+          ⏰ ACT BEFORE IT'S TOO LATE!''',
+              
+              '''🌍 CIBL ECOSYSTEM EXPANSION 🌍
+          
+          Growing beyond expectations!
+          New integrations and partnerships live.
+          
+          📍 CONTRACT ADDRESS:
+          2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          🌟 NEW ADDITIONS:
+          ✅ Enhanced swap functionality
+          ✅ Additional wallet integrations
+          ✅ Expanded token utilities
+          ✅ New partnership announcements
+          ✅ Community feature upgrades
+          ✅ Marketing campaign expansion
+          
+          🚀 BE PART OF OUR GROWTH STORY!''',
+              
+              '''🌐 CONNECT WITH CIBL ACROSS ALL PLATFORMS! 🌐
+          
+          ✨ Join Our Growing Social Media Network! ✨
+          
+          📍 Contract Address:
+          2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          📱 FOLLOW US EVERYWHERE:
+          🐦 Twitter (X): Latest announcements
+          💬 Telegram: 24/7 community discussions
+          📸 Instagram: Visual content & highlights
+          🎮 Discord: Advanced discussions
+          📺 YouTube: Tutorials & educational content
+          
+          🔗 STAY UPDATED WITH EVERY DEVELOPMENT!''',
+              
+              '''⏰ FINAL 24 HOURS! ⏰
+          
+          CIBL Mega Airdrop closing soon!
+          Last opportunity for bonus rewards!
+          
+          🔥 WHAT YOU GET:
+          ✅ Free CIBL tokens
+          ✅ Exclusive bonus rewards
+          ✅ Early adopter benefits
+          ✅ Community membership
+          ✅ Future airdrop eligibility
+          ✅ Voting rights
+          
+          📍 Contract Address:
+          2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          💎 DON'T REGRET MISSING OUT!'''
+          ]
+          
+          # Hashtags for each post
+          hashtags = [
+              "#CIBL #Solana #Airdrop #Crypto #DeFi #Memecoin",
+              "#CIBL #Solana #Crypto #Trading #Investing #Web3",
+              "#CIBL #Solana #Community #Crypto #Blockchain",
+              "#CIBL #Solana #Announcement #Update #DeFi",
+              "#Transformation #Crypto #TON #Success #CIBL",
+              "#CIBL #Solana #Crypto #Trending",
+              "#CIBL #Airdrop #Urgent #LimitedTime #Crypto",
+              "#CIBL #Ecosystem #Growth #Solana #Web3",
+              "#CIBL #Solana #SocialMedia #Community #Network",
+              "#CIBL #FinalHours #Airdrop #LastChance #Crypto"
+          ]
+          
+          def select_post(post_num):
+              try:
+                  if post_num.isdigit():
+                      num = int(post_num)
+                      if 1 <= num <= len(posts):
+                          return posts[num - 1], hashtags[num - 1]
+                  return random.choice(posts), random.choice(hashtags)
+              except:
+                  return random.choice(posts), random.choice(hashtags)
+          
+          def create_full_width_buttons():
+              """Create REAL glass buttons with inline keyboard"""
+              return {
+                  "inline_keyboard": [
+                      [{"text": "🌐 WEBSITE", "url": "https://ciblcoin.com"}],
+                      [{"text": "🪂 AIRDROP", "url": "https://cbl.ag"}],
+                      [{"text": "🔄 SWAP TOKEN", "url": "https://phantom.com/tokens/solana/2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA?referralId=2325rur2wft"}]
+                  ]
+              }
+          
+          def send_telegram_message_with_photo(caption):
+              """Send photo with caption and buttons"""
+              url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
+              
+              payload = {
+                  "chat_id": CHAT_ID,
+                  "photo": IMAGE_URL,
+                  "caption": caption,
+                  "parse_mode": "HTML",
+                  "reply_markup": create_full_width_buttons()
+              }
+              
+              try:
+                  response = requests.post(url, json=payload, timeout=30)
+                  return response.json()
+              except Exception as e:
+                  print(f"Photo send error: {e}")
+                  # Fallback to text
+                  return send_telegram_message_text(caption)
+          
+          def send_telegram_message_text(text):
+              """Send text message with buttons (fallback)"""
+              url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+              
+              payload = {
+                  "chat_id": CHAT_ID,
+                  "text": text,
+                  "parse_mode": "HTML",
+                  "reply_markup": create_full_width_buttons()
+              }
+              
+              try:
+                  response = requests.post(url, json=payload, timeout=30)
+                  return response.json()
+              except Exception as e:
+                  print(f"Text send error: {e}")
+                  return None
+          
+          def format_full_width_message(post_text, post_hashtags):
+              """Format message with full-width elements"""
+              # Random social icons
+              social_icons = ["🎮", "𝕏", "📱", "💻", "🐦", "🎪", "👾", "🕹️"]
+              selected_icons = random.sample(social_icons, 4)
+              
+              # Create full-width separator
+              separator = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              
+              # Format message
+              message = f"""<b>{post_text}</b>
+
+          {separator}
+          <b>🚀 QUICK ACTIONS 🚀</b>
+          {separator}
+
+          <b>{'  |  '.join(selected_icons)}</b>
+
+          <b>{post_hashtags}</b>
+
+          ⏰ Posted: {datetime.now().strftime("%Y-%m-%d %H:%M UTC")}
+          """
+              
+              return message
+          
+          def main():
+              print("🚀 Starting CIBL Telegram Poster")
+              
+              if not BOT_TOKEN or not CHAT_ID:
+                  print("❌ Missing credentials")
+                  sys.exit(1)
+              
+              post_num = os.getenv('POST_NUMBER', '0')
+              print(f"📊 Post number: {post_num}")
+              print(f"📢 Channel ID: {CHAT_ID}")
+              print(f"🖼️ Image: {IMAGE_URL}")
+              
+              # Select post
+              post_text, post_hashtags = select_post(post_num)
+              
+              # Format message
+              caption = format_full_width_message(post_text, post_hashtags)
+              
+              # Preview
+              print("\n📋 Preview:")
+              print("-" * 50)
+              print(caption[:200].replace('<b>', '').replace('</b>', '') + "...")
+              print("-" * 50)
+              
+              # Send with photo
+              print("\n📤 Sending to Telegram...")
+              result = send_telegram_message_with_photo(caption)
+              
+              if result and result.get('ok'):
+                  print(f"✅ Success! Message ID: {result['result']['message_id']}")
+                  print(f"🎉 Published to @CiBLofficial")
+                  print(f"🖼️ Image sent: Yes")
+                  print(f"🔘 Buttons: 3 glass buttons")
+                  return True
+              else:
+                  print(f"❌ Failed: {result}")
+                  return False
+          
+          if __name__ == "__main__":
+              success = main()
+              sys.exit(0 if success else 1)
+          EOF
+          
+          echo "✅ Script created"
+
+      - name: Run poster
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          POST_NUMBER: ${{ github.event.inputs.post_number }}
+        run: |
+          python poster.py
+
+      - name: Success message
+        if: success()
+        run: |
+          echo "🎉 CIBL post published successfully!"
+          echo "📅 $(date)"
+          echo "📢 Channel: @CiBLofficial"
+          echo "🤖 Bot: @CIBtokenBot"
+          echo "🖼️ Image: GitHub hosted"
+          echo "🔘 Buttons: 3 full-width glass buttons"
+
+      - name: Error message
+        if: failure()
+        run: |
+          echo "❌ Failed to publish"
+          echo "🔍 Check logs above"
+          echo "✅ Checklist:"
+          echo "1. BOT_TOKEN set in Secrets"
+          echo "2. CHAT_ID set in Secrets (with -100)"
+          echo "3. Bot is admin in channel"
+          echo "4. Image URL is accessible"
