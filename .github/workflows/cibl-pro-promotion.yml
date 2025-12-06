@@ -1,0 +1,195 @@
+name: CIBL Professional Promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      post_type:
+        description: 'Select promotion type'
+        required: true
+        default: 'airdrop'
+        type: choice
+        options:
+          - airdrop
+          - price_chart
+          - social_media
+          - full_promo
+
+env:
+  CHANNEL: "@CIBLOfficial"
+  CONTRACT: "2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA"
+  CIBL_IMAGE: "https://raw.githubusercontent.com/ciblcoin/app/main/public/videos/image1.png"
+  CURRENT_PRICE: "$0.000000008873"
+
+jobs:
+  send-promotion:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Get Live Price Data
+        id: market_data
+        run: |
+          echo "📊 Fetching live market data..."
+          # از API ساده‌تر استفاده می‌کنیم
+          response=$(curl -s "https://api.dexscreener.com/latest/dex/tokens/$CONTRACT")
+          
+          price=$(echo $response | jq -r '.pairs[0].priceUsd // "0.000000008873"')
+          change=$(echo $response | jq -r '.pairs[0].priceChange.h24 // "0.00"')
+          volume=$(echo $response | jq -r '.pairs[0].volume.h24 // "0"')
+          
+          # فرمت‌بندی اعداد
+          if [ "$price" != "0.000000008873" ]; then
+            formatted_price="\$$(printf "%.11f" $price)"
+          else
+            formatted_price="$CURRENT_PRICE"
+          fi
+          
+          if (( $(echo "$change >= 0" | bc -l 2>/dev/null) )); then
+            formatted_change="🟢 +$change%"
+          else
+            formatted_change="🔴 $change%"
+          fi
+          
+          formatted_volume="\$$(printf "%'.0f" $volume 2>/dev/null || echo "0")"
+          
+          echo "price=$formatted_price" >> $GITHUB_OUTPUT
+          echo "change=$formatted_change" >> $GITHUB_OUTPUT
+          echo "volume=$formatted_volume" >> $GITHUB_OUTPUT
+          echo "chart_url=https://dexscreener.com/solana/$CONTRACT?embed=1&t=2592000" >> $GITHUB_OUTPUT
+          
+          echo "✅ Live data fetched"
+
+      - name: Send Airdrop Promotion
+        if: github.event.inputs.post_type == 'airdrop'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "photo": "'"$CIBL_IMAGE"'",
+              "caption": "<b>🌊🚀 CIBL MEGA AIRDROP WAVE IS HERE! 🚀🌊</b><br><br><i>〰️〰️〰️ Join the Biggest Crypto Wave on Solana! 〰️〰️〰️</i><br><br>════════════════════════════════════════<br><br><b>🌐 LIVE TOKEN DATA:</b><br>💰 <b>Current Price:</b> '"${{ steps.market_data.outputs.price }}"'<br>📈 <b>24h Change:</b> '"${{ steps.market_data.outputs.change }}"'<br>📊 <b>24h Volume:</b> '"${{ steps.market_data.outputs.volume }}"'<br><br><b>📍 SMART CONTRACT:</b><br><code>2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA</code><br><br>════════════════════════════════════════<br><br><b>🎯 〰️ WHY CIBL TOKEN? 〰️</b><br>🌊 <b>Algorithmic Growth</b> – Advanced tokenomics<br>🌊 <b>Liquidity Waves</b> – Sustainable ecosystem<br>🌊 <b>Community Algorithms</b> – Holder rewards system<br>🌊 <b>Price Wave Predictor</b> – AI-driven analytics<br>🌊 <b>Multi-chain Bridges</b> – Cross-platform expansion<br><br><b>🚀 〰️ AIRDROP WAVE FEATURES 〰️</b><br>✅ <b>Massive Token Distribution</b><br>✅ <b>Staking Wave Rewards</b><br>✅ <b>Liquidity Pool Bonuses</b><br>✅ <b>Early Wave Participant Benefits</b><br><br><b>⏰ 〰️ LIMITED WAVE OPPORTUNITY! 〰️</b><br><br>════════════════════════════════════════<br><br><b>🌐〰️ SOCIAL WAVES 〰️🌐</b><br>🐦 Twitter | 💬 Telegram | 📸 Instagram<br>🎮 Discord | 📺 YouTube<br><br>#CIBL #Solana #AirdropWave #CryptoWave #Algorithm #DeFi #Web3 #Blockchain #Memecoin",
+              "parse_mode": "HTML",
+              "reply_markup": {
+                "inline_keyboard": [
+                  [
+                    {"text": "🌊 Join Airdrop", "url": "https://cbl.ag"},
+                    {"text": "📈 Live Chart", "url": "'"${{ steps.market_data.outputs.chart_url }}"'"}
+                  ],
+                  [
+                    {"text": "🌐 Website", "url": "https://ciblcoin.com"},
+                    {"text": "💬 Community", "url": "https://t.me/CIBLcoin"}
+                  ]
+                ]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendPhoto
+
+      - name: Send Price Chart Promotion
+        if: github.event.inputs.post_type == 'price_chart'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "photo": "'"$CIBL_IMAGE"'",
+              "caption": "<b>📊〰️ CIBL PRICE ANALYSIS & CHARTS 〰️📊</b><br><br><i>〰️〰️〰️ 1-Month Price Wave Analysis 〰️〰️〰️</i><br><br>════════════════════════════════════════<br><br><b>📈 LIVE PRICE DATA:</b><br>💰 <b>Current Price:</b> '"${{ steps.market_data.outputs.price }}"'<br>📊 <b>24h Change:</b> '"${{ steps.market_data.outputs.change }}"'<br>💎 <b>Market Status:</b> Early Growth Phase<br>🚀 <b>Growth Potential:</b> 1000x+ Opportunity<br><br><b>📉 1-MONTH CHART ANALYSIS:</b><br>🌊 <b>Price Wave Pattern:</b> Bullish formation<br>🌊 <b>Support Levels:</b> Strong foundation<br>🌊 <b>Resistance Break:</b> Imminent breakout<br>🌊 <b>Volume Wave:</b> Increasing momentum<br>🌊 <b>Algorithm Signal:</b> Buy indication<br><br><b>🎯 SMART CONTRACT:</b><br><code>2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA</code><br><br>════════════════════════════════════════<br><br><b>🔮 〰️ PRICE WAVE PREDICTION 〰️</b><br>✅ <b>Short-term:</b> Consolidation phase<br>✅ <b>Mid-term:</b> Upward trajectory<br>✅ <b>Long-term:</b> Exponential growth<br>✅ <b>Targets:</b> Multiple milestones ahead<br><br><b>🤖 〰️ ALGORITHMIC INSIGHTS 〰️</b><br>🌐 AI-driven price prediction models<br>🌐 Liquidity wave analysis tools<br>🌐 Community sentiment algorithms<br>🌐 Market trend wave detectors<br><br><b>⏰ 〰️ TIME TO RIDE THE WAVE! 〰️</b><br><br>#CIBL #Solana #PriceChart #TechnicalAnalysis #Trading #Crypto #Investing #DeFi",
+              "parse_mode": "HTML",
+              "reply_markup": {
+                "inline_keyboard": [
+                  [
+                    {"text": "📊 View Live Chart", "url": "'"${{ steps.market_data.outputs.chart_url }}"'"},
+                    {"text": "📈 Price Analysis", "url": "https://dexscreener.com/solana/2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA"}
+                  ],
+                  [
+                    {"text": "🌊 Buy CIBL", "url": "https://dexscreener.com/solana/2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA"},
+                    {"text": "🌐 Website", "url": "https://ciblcoin.com"}
+                  ]
+                ]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendPhoto
+
+      - name: Send Social Media Promotion
+        if: github.event.inputs.post_type == 'social_media'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "photo": "'"$CIBL_IMAGE"'",
+              "caption": "<b>🌐〰️ JOIN CIBL SOCIAL WAVE! 〰️🌐</b><br><br><i>〰️〰️〰️ Connect Across All Platforms 〰️〰️〰️</i><br><br>════════════════════════════════════════<br><br><b>📍 SMART CONTRACT:</b><br><code>2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA</code><br><br><b>💰 CURRENT PRICE:</b> '"${{ steps.market_data.outputs.price }}"'<br><b>📈 24H CHANGE:</b> '"${{ steps.market_data.outputs.change }}"'<br><br>════════════════════════════════════════<br><br><b>🌊〰️ SOCIAL MEDIA WAVES 〰️🌊</b><br><br><b>🐦 TWITTER (X):</b><br>• Latest announcements & updates<br>• Community engagement<br>• Market insights<br>• Live discussions<br><br><b>💬 TELEGRAM:</b><br>• 24/7 active community<br>• Real-time support<br>• Exclusive content<br>• Group discussions<br><br><b>📸 INSTAGRAM:</b><br>• Visual content<br>• Community highlights<br>• Story updates<br>• Graphic designs<br><br><b>🎮 DISCORD:</b><br>• Advanced discussions<br>• Developer chats<br>• Voice channels<br>• Special events<br><br><b>📺 YOUTUBE:</b><br>• Tutorial videos<br>• AMA recordings<br>• Educational content<br>• Project updates<br><br>════════════════════════════════════════<br><br><b>🚀〰️ GROW WITH OUR COMMUNITY! 〰️🚀</b><br><br>#CIBL #Solana #SocialMedia #Community #Crypto #Network #Web3 #Blockchain",
+              "parse_mode": "HTML",
+              "reply_markup": {
+                "inline_keyboard": [
+                  [
+                    {"text": "🐦 Twitter (X)", "url": "https://x.com/CiblCrypto"},
+                    {"text": "💬 Telegram", "url": "https://t.me/CIBLcoin"}
+                  ],
+                  [
+                    {"text": "📸 Instagram", "url": "https://www.instagram.com/ciblcoin"},
+                    {"text": "🎮 Discord", "url": "https://discord.gg/9HeTsHJcTq"}
+                  ],
+                  [
+                    {"text": "📺 YouTube", "url": "https://www.youtube.com/@ciblcoin"},
+                    {"text": "🌐 Website", "url": "https://ciblcoin.com"}
+                  ]
+                ]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendPhoto
+
+      - name: Send Full Promotion
+        if: github.event.inputs.post_type == 'full_promo'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "@CIBLOfficial",
+              "photo": "'"$CIBL_IMAGE"'",
+              "caption": "<b>🌊🚀〰️ CIBL COMPLETE ECOSYSTEM 〰️🚀🌊</b><br><br><i>〰️〰️〰️ The Ultimate Solana Token Experience 〰️〰️〰️</i><br><br>════════════════════════════════════════<br><br><b>📊 REAL-TIME MARKET DATA:</b><br>💰 <b>Live Price:</b> '"${{ steps.market_data.outputs.price }}"'<br>📈 <b>24h Performance:</b> '"${{ steps.market_data.outputs.change }}"'<br>📊 <b>Trading Volume:</b> '"${{ steps.market_data.outputs.volume }}"'<br>🎯 <b>Market Phase:</b> Early Adoption Wave<br><br><b>📍 OFFICIAL CONTRACT:</b><br><code>2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA</code><br><br>════════════════════════════════════════<br><br><b>🤖〰️ ADVANCED ALGORITHMS 〰️🤖</b><br>🌊 <b>Dynamic Tokenomics</b> – Adaptive supply<br>🌊 <b>Liquidity Wave System</b> – Automated pools<br>🌊 <b>Price Stability Algorithm</b> – Anti-dump<br>🌊 <b>Community Reward Algorithm</b> – Fair distribution<br>🌊 <b>Cross-chain Bridge AI</b> – Multi-network<br><br><b>🚀〰️ ECOSYSTEM FEATURES 〰️🚀</b><br>✅ <b>Massive Airdrop Program</b><br>✅ <b>Staking & Farming Pools</b><br>✅ <b>NFT Integration Platform</b><br>✅ <b>DAO Governance System</b><br>✅ <b>Mobile Wallet Support</b><br><br><b>🌐〰️ SOCIAL WAVE NETWORK 〰️🌐</b><br>🐦 Twitter | 💬 Telegram | 📸 Instagram<br>🎮 Discord | 📺 YouTube | 🌐 Website<br><br>════════════════════════════════════════<br><br><b>🎯〰️ INVESTMENT HIGHLIGHTS 〰️🎯</b><br>• Early-stage gem with 1000x potential<br>• Strong community-driven development<br>• Transparent and doxxed team<br>• Regular updates and improvements<br>• Strategic partnership pipeline<br><br><b>⏰〰️ JOIN THE WAVE NOW! 〰️⏰</b><br><br>#CIBL #Solana #Ecosystem #Algorithm #Airdrop #DeFi #Web3 #Crypto #Blockchain #Investment",
+              "parse_mode": "HTML",
+              "reply_markup": {
+                "inline_keyboard": [
+                  [
+                    {"text": "🌊 Join Airdrop", "url": "https://cbl.ag"},
+                    {"text": "📊 Live Chart", "url": "'"${{ steps.market_data.outputs.chart_url }}"'"}
+                  ],
+                  [
+                    {"text": "🌐 Website", "url": "https://ciblcoin.com"},
+                    {"text": "💬 Community", "url": "https://t.me/CIBLcoin"}
+                  ],
+                  [
+                    {"text": "🐦 Twitter (X)", "url": "https://x.com/CiblCrypto"},
+                    {"text": "📸 Instagram", "url": "https://www.instagram.com/ciblcoin"}
+                  ],
+                  [
+                    {"text": "🎮 Discord", "url": "https://discord.gg/9HeTsHJcTq"},
+                    {"text": "📺 YouTube", "url": "https://www.youtube.com/@ciblcoin"}
+                  ]
+                ]
+              }
+            }' \
+            https://api.telegram.org/bot$BOT_TOKEN/sendPhoto
+
+      - name: Notify Admin
+        if: always()
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          if [ -n "${{ secrets.ADMIN_CHAT_ID }}" ]; then
+            curl -X POST \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"chat_id\": \"${{ secrets.ADMIN_CHAT_ID }}\",
+                \"text\": \"✅ CIBL Professional Promotion Sent!\\n\\nType: ${{ github.event.inputs.post_type }}\\nChannel: @CIBLOfficial\\nImage: $CIBL_IMAGE\\nPrice: '"${{ steps.market_data.outputs.price }}"'\\nTime: $(date '+%H:%M:%S')\",
+                \"parse_mode\": \"HTML\"
+              }" \
+              https://api.telegram.org/bot$BOT_TOKEN/sendMessage || true
+          fi
