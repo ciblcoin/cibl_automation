@@ -1,0 +1,204 @@
+name: CIBL Telegram Poster
+on: workflow_dispatch
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Poster Script
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+        run: |
+          # Create Python script
+          cat > post.py << 'EOF'
+          import os, sys, random, requests
+          from datetime import datetime
+          
+          # Config
+          TOKEN = os.getenv('BOT_TOKEN')
+          CHAT = os.getenv('CHAT_ID')
+          IMAGE = "https://raw.githubusercontent.com/ciblcoin/app/main/public/videos/image1.png"
+          
+          # Posts
+          posts = [
+              '''🚀 CIBL MEGA AIRDROP - LIVE NOW!
+          
+          🔥 Biggest Solana Airdrop!
+          
+          📍 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          ✅ Earn free tokens
+          ✅ 5,000+ holders
+          ✅ Lightning fast
+          ✅ Transparent team
+          ✅ Huge potential
+          
+          ⏰ LIMITED TIME!''',
+              
+              '''📈 CIBL PRICE UPDATE
+          
+          ⚡ Major movement!
+          
+          📍 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          📊 Strong fundamentals
+          🚀 Growing adoption
+          👥 Community expanding
+          🎯 New partnerships
+          🔥 Positive momentum''',
+              
+              '''👥 CIBL COMMUNITY
+          
+          💪 Strongest on Solana!
+          
+          📍 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          ✅ 24/7 discussions
+          ✅ AMA sessions
+          ✅ Exclusive events
+          ✅ Voting rights
+          ✅ Supportive''',
+              
+              '''📢 CIBL ANNOUNCEMENT
+          
+          🌟 Major update!
+          
+          📍 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          ✅ New partnerships
+          ✅ Roadmap updates
+          ✅ Enhanced features
+          ✅ Expanded team
+          ✅ Marketing initiatives''',
+              
+              '''✨ FROM STRUGGLE TO SUCCESS
+          
+          Our journey continues!
+          
+          🏙️ Full of friends
+          😻 Cats first in line!
+          
+          💎 Love TON
+          🎯 Get rewarded!''',
+              
+              '''🚀 CIBL TRENDING!
+          
+          Massive movements!
+          
+          Join revolution now!
+          
+          ⚡ Quick actions below''',
+              
+              '''⚡ URGENT OFFER!
+          
+          Airdrop closing!
+          
+          📍 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          ✅ Exclusive bonus
+          ✅ Limited distribution
+          ✅ Community benefits
+          ✅ Massive returns''',
+              
+              '''🌍 ECOSYSTEM EXPANSION
+          
+          Growing fast!
+          
+          📍 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          ✅ Swap functionality
+          ✅ Wallet integrations
+          ✅ Token utilities
+          ✅ Partnerships
+          ✅ Marketing''',
+              
+              '''🌐 CONNECT WITH CIBL
+          
+          ✨ Social network!
+          
+          📍 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          🐦 Twitter (X)
+          💬 Telegram
+          📸 Instagram
+          🎮 Discord
+          📺 YouTube''',
+              
+              '''⏰ FINAL 24 HOURS!
+          
+          Last chance!
+          
+          📍 2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA
+          
+          ✅ Free tokens
+          ✅ Bonus rewards
+          ✅ Early benefits
+          ✅ Membership
+          ✅ Voting rights'''
+          ]
+          
+          hashtags = [
+              "#CIBL #Solana #Airdrop",
+              "#CIBL #Solana #Crypto",
+              "#CIBL #Community",
+              "#CIBL #Announcement",
+              "#CIBL #Success",
+              "#CIBL #Trending",
+              "#CIBL #Urgent",
+              "#CIBL #Ecosystem",
+              "#CIBL #Social",
+              "#CIBL #Final"
+          ]
+          
+          # Create caption
+          post = random.choice(posts)
+          tag = hashtags[posts.index(post)]
+          time = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+          
+          caption = f"""<b>{post}</b>
+
+          ━━━━━━━━━━━━━━━━━━━━━━━━━
+          <b>🚀 QUICK ACTIONS</b>
+          ━━━━━━━━━━━━━━━━━━━━━━━━━
+          
+          <b>🎮   🐦   📱   💻</b>
+          
+          <b>{tag}</b>
+          
+          <i>⏰ {time}</i>"""
+          
+          # Buttons
+          buttons = {
+              "inline_keyboard": [
+                  [{"text": "🌐 WEBSITE", "url": "https://ciblcoin.com"}],
+                  [{"text": "🪂 AIRDROP", "url": "https://cbl.ag"}],
+                  [{"text": "🔄 SWAP", "url": "https://phantom.com/tokens/solana/2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA?referralId=2325rur2wft"}]
+              ]
+          }
+          
+          # Send with photo
+          url = f"https://api.telegram.org/bot{TOKEN}/sendPhoto"
+          data = {
+              "chat_id": CHAT,
+              "photo": IMAGE,
+              "caption": caption,
+              "parse_mode": "HTML",
+              "reply_markup": buttons
+          }
+          
+          try:
+              r = requests.post(url, json=data, timeout=30)
+              if r.json().get('ok'):
+                  print("✅ Post published!")
+                  sys.exit(0)
+              else:
+                  print(f"❌ Error: {r.json()}")
+                  sys.exit(1)
+          except Exception as e:
+              print(f"❌ Exception: {e}")
+              sys.exit(1)
+          EOF
+          
+          # Run script
+          python3 post.py
