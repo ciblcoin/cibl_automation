@@ -1,0 +1,35 @@
+name: CIBL Wide Buttons Poster
+
+on:
+  workflow_dispatch
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Full Width Post
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          # ساخت دکمه‌های تمام عرض
+          buttons='{
+            "inline_keyboard": [
+              [{"text": "━━━━━━━━ WEBSITE ━━━━━━━━", "url": "https://ciblcoin.com"}],
+              [{"text": "━━━━━━━━ AIRDROP ━━━━━━━━", "url": "https://cbl.ag"}],
+              [{"text": "━━━━━━━━ CHART ━━━━━━━━", "url": "https://dexscreener.com/solana/2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA"}]
+            ]
+          }'
+          
+          # ارسال پست
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"-1002923296515\",
+              \"photo\": \"https://raw.githubusercontent.com/ciblcoin/app/main/public/videos/image1.png\",
+              \"caption\": \"<b>🚀 CIBL MEGA AIRDROP</b>\\n\\nJoin the biggest airdrop on Solana!\\n\\n<b>Contract:</b>\\n<code>2Lpgt5teMe4SPp1G8x1URBk6dPRoimftdANmAsFDvkPA</code>\\n\\n<b>✅ Features:</b>\\n• Massive Rewards\\n• Strong Community\\n• Solana Speed\\n• Transparent Team\\n\\n<b>🔥 Limited Time!</b>\\n\\n<b>⏰ Join Now!</b>\\n\\n#CIBL #Solana #Airdrop\",
+              \"parse_mode\": \"HTML\",
+              \"reply_markup\": $buttons
+            }" \
+            https://api.telegram.org/bot$BOT_TOKEN/sendPhoto
+          
+          echo "✅ Wide button post sent!"
